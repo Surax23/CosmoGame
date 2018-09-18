@@ -9,16 +9,15 @@ namespace Game
 {
     class Program
     {
-
-
         static void Main(string[] args)
         {
             Form form = new Form();
             form.Width = 800;
             form.Height = 600;
+            Splash.Init(form);
             GameEngine.Init(form);
             form.Show();
-            GameEngine.Draw();
+            //GameEngine.Draw();
             Application.Run(form);
         }
     }
