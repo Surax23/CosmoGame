@@ -7,18 +7,25 @@ using System.Threading.Tasks;
 
 namespace Game
 {
-    class Program
+    enum GameStatus
     {
+        menu, game, pause
+    }
 
+    static class Program
+    {
+        static GameStatus gameStatus;
 
         static void Main(string[] args)
         {
+            gameStatus = GameStatus.menu;
             Form form = new Form();
-            form.Width = 800;
-            form.Height = 600;
+            form.Width = 1600;
+            form.Height = 1000;
+            Splash.Init(form);
             GameEngine.Init(form);
             form.Show();
-            GameEngine.Draw();
+            //GameEngine.Draw();
             Application.Run(form);
         }
     }
