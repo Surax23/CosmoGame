@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace Game
 {
@@ -251,7 +250,6 @@ namespace Game
             img = new Bitmap("asteroid.png");
             Size.Width = img.Width;
             Size.Height = img.Height;
-            //MessageBox.Show(Size.Width + " " + Size.Height);
         }
 
         public override void Dispose()
