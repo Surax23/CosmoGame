@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace Game
 {
+    public delegate void Message();
+    public delegate void Alert(object o);
+
     interface ICollision
     {
         bool Collision(ICollision obj);
@@ -39,6 +42,8 @@ namespace Game
         /// </summary>
         protected Random rand;
 
+        public event Alert BaseObjectActions;
+
         /// <summary>
         /// Создает экземпляр базового класса всех объектов.
         /// </summary>
@@ -55,6 +60,9 @@ namespace Game
                 throw new GameObjectException();
             Size = size;
             rand = new Random(DateTime.Now.Millisecond);
+            Observer o = new Observer();
+            BaseObjectActions += o.PrintMsg;
+            BaseObjectActions?.Invoke(this);
         }
         /// <summary>
         /// Возвращает прямоугольную область для проверки столкновений.
@@ -96,7 +104,7 @@ namespace Game
         Bitmap img;
         public Star(Point pos, Point dir, Size size) : base(pos, dir, size)
         {
-            Bitmap tmp = new Bitmap("star.png");
+            Bitmap tmp = new Bitmap("img/star.png");
             img = new Bitmap(tmp, size);
             tmp.Dispose();
         }
@@ -176,10 +184,10 @@ namespace Game
         {
             switch (rand.Next(0, 4))
             {
-                case 0: return new Bitmap("galaxy1.png");
-                case 1: return new Bitmap("galaxy2.png");
-                case 2: return new Bitmap("galaxy3.png");
-                default: return new Bitmap("galaxy4.png");
+                case 0: return new Bitmap("img/galaxy1.png");
+                case 1: return new Bitmap("img/galaxy2.png");
+                case 2: return new Bitmap("img/galaxy3.png");
+                default: return new Bitmap("img/galaxy4.png");
             }
         }
 
@@ -213,7 +221,7 @@ namespace Game
 
         public Ship(Point pos, Point dir, Size size) : base(pos, dir, size)
         {
-            img = new Bitmap("ship.png");
+            img = new Bitmap("img/ship.png");
         }
 
         ~Ship()
@@ -247,7 +255,7 @@ namespace Game
         Bitmap img;
         public Asteroid(Point pos, Point dir, Size size) : base(pos, dir, size)
         {
-            img = new Bitmap("asteroid.png");
+            img = new Bitmap("img/asteroid.png");
             Size.Width = img.Width;
             Size.Height = img.Height;
         }
@@ -259,7 +267,8 @@ namespace Game
 
         public override void Draw()
         {
-            GameEngine.Buffer.Graphics.DrawImage(img, base.Pos);
+            GameEngine.Buffer.Graphics.DrawImage(img, Pos);
+            //GameEngine.Buffer.Graphics.DrawRectangle(Pens.White, new Rectangle(Pos, Size));
         }
 
         public override void Update()
@@ -307,16 +316,64 @@ namespace Game
         public override void Update()
         {
             Pos.X += Dir.X;
-            if (Pos.X > GameEngine.Width + Size.Width)
-            {
-                Pos.X = 0;
-                Pos.Y = rand.Next(0, GameEngine.Height);
-            }
         }
 
         public void SetPosX(int x)
         {
             Pos.X = x;
+        }
+    }
+
+    /// <summary>
+    /// Корабль, управляемый игроком, наследник BaseObject.
+    /// </summary>
+    class HeroShip : BaseObject
+    {
+        public event Message MessageDie;
+        Bitmap img;
+        public int Health { get; set; }
+        public int Score { get; set; }
+
+        public HeroShip(Point pos, Point dir, Size size) : base(pos, dir, size)
+        {
+            img = new Bitmap("img/heroship.png");
+            Health = 100;
+            Score = 0;
+        }
+
+        public void Damage(int damage)
+        {
+            Health -= damage;
+        }
+
+        public override void Dispose()
+        {
+            img.Dispose();
+        }
+
+        public override void Draw()
+        {
+            GameEngine.Buffer.Graphics.DrawImage(img, Pos);
+            GameEngine.Buffer.Graphics.DrawString($"Здоровье: {Health}, Счет: {Score}", SystemFonts.DefaultFont, Brushes.LawnGreen, new PointF(GameEngine.Width/2, 10));
+        }
+
+        public void Up()
+        {
+            if (Pos.Y > 0) Pos.Y -= Dir.Y;
+        }
+
+        public void Down()
+        {
+            if (Pos.Y < GameEngine.Height) Pos.Y += Dir.Y;
+        }
+
+        public override void Update()
+        {
+            //throw new NotImplementedException();
+        }
+        public void Die()
+        {
+            MessageDie?.Invoke();
         }
     }
 }

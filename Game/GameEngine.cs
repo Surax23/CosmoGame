@@ -17,6 +17,7 @@ namespace Game
         public static BufferedGraphics Buffer;
         public static int Width { get; set; }
         public static int Height { get; set; }
+        static Timer timer;
 
         /// <summary>
         /// Список объектов для отрисовки.
@@ -65,9 +66,16 @@ namespace Game
             _objs_back = new List<BaseObject>();
             _objs_ingame = new List<BaseObject>();
             _objs_bullets = new List<BaseObject>();
-            Timer timer = new Timer() { Interval = 20 };
+            Game.heroShip.MessageDie += Finish;
+            timer = new Timer() { Interval = 20 };
             timer.Tick += Timer_Tick;
             timer.Start();
+        }
+
+        private static void Finish()
+        {
+            timer.Stop();
+            MessageBox.Show("Ты умер.");
         }
 
         /// <summary>
@@ -101,18 +109,39 @@ namespace Game
             {
                 foreach (BaseObject bs in _objs_bullets)
                     bs.Update();
-                foreach (Asteroid bs in _objs_ingame)
+                foreach (BaseObject bs in _objs_ingame)
                 {
                     bs.Update();
-                    foreach (Bullet bo in _objs_bullets)
-                        if (bs.Collision(bo))
+                    for (int i = 0; i < _objs_bullets.Count; i++)
+                    {
+                        if (_objs_bullets[i].Rect.X > GameEngine.Width)
                         {
-                            bs.SetPosX(-bs.Rect.Width - 100);
-                            bo.SetPosX(GameEngine.Width + 1);
-                            System.Media.SystemSounds.Hand.Play();
+                            _objs_bullets[i].Dispose();
+                            _objs_bullets.RemoveAt(i);
                         }
+                        if (bs.GetType() != typeof(HeroShip))
+                            if ((bs as Asteroid).Collision(_objs_bullets[i]))
+                            {
+                                (bs as Asteroid).SetPosX(-bs.Rect.Width - 100);
+                                _objs_bullets[i].Dispose();
+                                _objs_bullets.RemoveAt(i);
+                                System.Media.SystemSounds.Hand.Play();
+                                Game.heroShip.Score++;
+                            }
+                    }
+                    if (bs.GetType() == typeof(Asteroid))
+                    {
+                        if (bs.Collision(Game.heroShip))
+                        {
+                            Game.heroShip.Damage(1);
+                            System.Media.SystemSounds.Hand.Play();
+                            if (Game.heroShip.Health <= 0) Game.heroShip?.Die();
+                        }
+                    }
                 }
             }
         }
     }
+
+    
 }

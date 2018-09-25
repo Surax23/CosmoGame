@@ -8,6 +8,15 @@ using System.Drawing;
 
 namespace Game
 {
+
+    public class Observer
+    {
+        public void PrintMsg(object o)
+        {
+            Console.WriteLine($"Объект типа {o.GetType()} был создан по координатам: {(o as BaseObject).Rect.X}:{(o as BaseObject).Rect.Y}");
+        }
+    }
+
     /// <summary>
     /// Перечисление состояния игры.
     /// </summary>
@@ -16,18 +25,33 @@ namespace Game
         menu, game
     }
 
+    /// <summary>
+    /// Маленький хак, чтобы кнопка меню в игре не забирала фокус.
+    /// </summary>
+    public class btn : Button
+    {
+        public btn()
+        {
+            this.SetStyle(ControlStyles.Selectable, false);
+        }
+    }
+
     static class Game
     {
         public static GameStatus gameStatus;
+        public static HeroShip heroShip = new HeroShip(new Point(80, 300), new Point(5, 5), new Size(0,0));
+        private static Bullet bullet;
         static Button menu_btn, start_btn, record_btn, exit_btn, author;
+        static Form form;
 
         static void Main(string[] args)
         {
+            
             gameStatus = GameStatus.menu;
-            Form form = new Form();
+            form = new Form();
 
             #region Создание кнопок меню
-            menu_btn = new Button();
+            menu_btn = new btn();
             menu_btn.Text = "Меню";
             menu_btn.Left = 10;
             menu_btn.Top = 10;
@@ -77,25 +101,35 @@ namespace Game
 
             form.Width = 800;
             form.Height = 600;
+            
             GameEngine.Init(form);
 
             GameEngine.Load(BackGround.CreateObjectsList());
 
+            GameEngine._objs_ingame.Add(heroShip);
+
+           
+
             Random c = new Random();
             for (int i = 0; i < 7; i++)
-            {
                 GameEngine._objs_ingame.Add(new Asteroid(new System.Drawing.Point(GameEngine.Width, 100), new System.Drawing.Point(4, 0), new System.Drawing.Size(0,0)));
-            }
 
-            for (int i = 0; i < 1; i++)
-            {
-                GameEngine._objs_bullets.Add(new Bullet(new Point(0 + i*100, 100), new Point(40, 0), new Size(20, 5)));
-            }
-
-
-            form.Show();
+            //form.Show();
+            form.KeyDown += Form_KeyDown;
             //GameEngine.Draw();
             Application.Run(form);
+            
+        }
+
+        private static void Form_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.ControlKey)
+            {
+                bullet = new Bullet(new Point(heroShip.Rect.X + 60, heroShip.Rect.Y + 35), new Point(15, 0), new Size(8, 3));
+                GameEngine._objs_bullets.Add(bullet);
+            }
+            if (e.KeyCode == Keys.Up) heroShip.Up();
+            if (e.KeyCode == Keys.Down) heroShip.Down();
         }
 
         /// <summary>
@@ -111,6 +145,7 @@ namespace Game
             author.Visible = true;
             menu_btn.Visible = false;
             gameStatus = GameStatus.menu;
+            
         }
 
         /// <summary>
@@ -126,6 +161,7 @@ namespace Game
             exit_btn.Visible = false;
             author.Visible = false;
             gameStatus = GameStatus.game;
+            form.Focus();
         }
 
         /// <summary>
