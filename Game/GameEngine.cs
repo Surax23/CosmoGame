@@ -41,14 +41,21 @@ namespace Game
         /// </summary>
         public static void Load(List<BaseObject> list)
         {
-            if (_objs_back.Count != 0)
-            {
-                for (int i = 0; i < _objs_back.Count; i++)
-                {
-                    _objs_back[i].Dispose();
-                    _objs_back.RemoveAt(i);
-                }
-            }
+            if (_objs_back != null)
+                foreach (BaseObject obj in _objs_back)
+                    obj.Dispose();
+            if (_objs_ingame != null)
+                foreach (BaseObject obj in _objs_ingame)
+                    obj.Dispose();
+            if (_objs_bullets != null)
+                foreach (BaseObject obj in _objs_bullets)
+                    obj.Dispose();
+            _objs_back = null;
+            _objs_ingame = null;
+            _objs_bullets = null;
+            _objs_back = new List<BaseObject>();
+            _objs_ingame = new List<BaseObject>();
+            _objs_bullets = new List<BaseObject>();
             Random c = new Random();
             _objs_ingame.Add(new Asteroid(new Point(Width, c.Next(0, Height)), new Point(4, 0), new Size(0, 0)));
             heroShip = new HeroShip(new Point(80, 300), new Point(0, 10), new Size(0, 0));
@@ -77,10 +84,7 @@ namespace Game
                 throw new ArgumentOutOfRangeException();
             Height = form.Height;
             Buffer = _context.Allocate(g, new Rectangle(0, 0, Width, Height));
-            _objs_back = new List<BaseObject>();
-            _objs_ingame = new List<BaseObject>();
-            _objs_bullets = new List<BaseObject>();
-
+            
             Load(BackGround.CreateObjectsList());
 
             timer = new Timer() { Interval = 20 };
@@ -142,16 +146,11 @@ namespace Game
             // Потом добавлние результата в файл и запись.
             // А теперь старт заново.
 
-            heroShip.Health = 100;
-            heroShip.Score = 0;
-            for (int i = 0; i < _objs_ingame.Count; i++)
-            {
-                _objs_ingame[i].Dispose();
-            }
-            _objs_ingame = null;
-            _objs_ingame = new List<BaseObject>();
+            
             Load(BackGround.CreateObjectsList());
             timer.Start();
+            heroShip.Health = 100;
+            heroShip.Score = 0;
         }
 
         /// <summary>
