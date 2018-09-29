@@ -256,8 +256,8 @@ namespace Game
         public Asteroid(Point pos, Point dir, Size size) : base(pos, dir, size)
         {
             img = new Bitmap("img/asteroid.png");
-            Size.Width = img.Width;
-            Size.Height = img.Height;
+            Size.Width = img.Width + 15;
+            Size.Height = img.Height + 15;
         }
 
         public override void Dispose()
@@ -337,6 +337,8 @@ namespace Game
         public HeroShip(Point pos, Point dir, Size size) : base(pos, dir, size)
         {
             img = new Bitmap("img/heroship.png");
+            Size.Width = img.Width + 15;
+            Size.Height = img.Height + 15;
             Health = 100;
             Score = 0;
         }
@@ -344,6 +346,11 @@ namespace Game
         public void Damage(int damage)
         {
             Health -= damage;
+        }
+
+        public void Aid(int aid)
+        {
+            Health += aid;
         }
 
         public override void Dispose()
@@ -354,6 +361,7 @@ namespace Game
         public override void Draw()
         {
             GameEngine.Buffer.Graphics.DrawImage(img, Pos);
+            //GameEngine.Buffer.Graphics.DrawRectangle(Pens.White, new Rectangle(Pos, Size));
             GameEngine.Buffer.Graphics.DrawString($"Здоровье: {Health}, Счет: {Score}", SystemFonts.DefaultFont, Brushes.LawnGreen, new PointF(GameEngine.Width/2, 10));
         }
 
@@ -374,6 +382,47 @@ namespace Game
         public void Die()
         {
             MessageDie?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// Аптечка
+    /// </summary>
+    class Aid : BaseObject
+    {
+        Bitmap img;
+        public Aid(Point pos, Point dir, Size size) : base(pos, dir, size)
+        {
+            img = new Bitmap("img/plus.png");
+            Size.Width = img.Width;
+            Size.Height = img.Height;
+        }
+
+        public override void Dispose()
+        {
+            img.Dispose();
+        }
+
+        public override void Draw()
+        {
+            GameEngine.Buffer.Graphics.DrawImage(img, Pos);
+            //GameEngine.Buffer.Graphics.DrawRectangle(Pens.White, new Rectangle(Pos, Size));
+        }
+
+        public override void Update()
+        {
+            base.Pos.X -= Dir.X;
+            base.Pos.Y -= Dir.Y;
+            if (base.Pos.X < -Size.Width - 100 || base.Pos.Y + Size.Height < 0 || base.Pos.Y > GameEngine.Height)
+            {
+                base.Pos.X = GameEngine.Width;
+                base.Pos.Y = rand.Next(GameEngine.Height / 4, GameEngine.Height - GameEngine.Height / 4);
+            }
+        }
+
+        public void SetPosX(int x)
+        {
+            Pos.X = x;
         }
     }
 }

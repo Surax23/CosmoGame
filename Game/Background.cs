@@ -28,6 +28,7 @@ namespace Game
                 list.Add(new Star(new Point(c.Next(0, GameEngine.Width), c.Next(0, GameEngine.Width)), new Point(c.Next(2, 4), c.Next(2, 4)), new Size(size * 3, size * 3)));
             }
             list.Add(new Ship(new Point(-2200, 20), new Point(1, 1), new Size(0, 0)));
+            
             return list;
         }
     }

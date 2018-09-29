@@ -39,15 +39,14 @@ namespace Game
     static class Game
     {
         public static GameStatus gameStatus;
-        public static HeroShip heroShip = new HeroShip(new Point(80, 300), new Point(5, 5), new Size(0,0));
-        private static Bullet bullet;
+
+        public static event Action<GameStatus> GameStatus_change;
+        
         static Button menu_btn, start_btn, record_btn, exit_btn, author;
         static Form form;
 
         static void Main(string[] args)
         {
-            
-            gameStatus = GameStatus.menu;
             form = new Form();
 
             #region Создание кнопок меню
@@ -58,7 +57,7 @@ namespace Game
             menu_btn.Width = 80;
             menu_btn.Height = 30;
             form.Controls.Add(menu_btn);
-            menu_btn.Click += menu_btn_Click;
+            menu_btn.Click += Menu_btn_Click;
             menu_btn.Visible = false;
 
             start_btn = new Button();
@@ -68,7 +67,7 @@ namespace Game
             start_btn.Width = 230;
             start_btn.Height = 50;
             form.Controls.Add(start_btn);
-            start_btn.Click += start_btn_Click;
+            start_btn.Click += Start_btn_Click;
 
             record_btn = new Button();
             record_btn.Text = "Рекорды";
@@ -77,7 +76,7 @@ namespace Game
             record_btn.Width = 230;
             record_btn.Height = 50;
             form.Controls.Add(record_btn);
-            record_btn.Click += record_btn_Click;
+            record_btn.Click += Record_btn_Click;
 
             exit_btn = new Button();
             exit_btn.Text = "Выход";
@@ -86,7 +85,7 @@ namespace Game
             exit_btn.Width = 230;
             exit_btn.Height = 50;
             form.Controls.Add(exit_btn);
-            exit_btn.Click += exit_btn_Click;
+            exit_btn.Click += Exit_btn_Click;
 
             author = new Button();
             author.FlatStyle = FlatStyle.Flat;
@@ -101,35 +100,43 @@ namespace Game
 
             form.Width = 800;
             form.Height = 600;
-            
+
+            GameStatus_change += ChangeGameStatus;
+            ChangeGameStatus(GameStatus.menu);
             GameEngine.Init(form);
-
-            GameEngine.Load(BackGround.CreateObjectsList());
-
-            GameEngine._objs_ingame.Add(heroShip);
-
-           
-
-            Random c = new Random();
-            for (int i = 0; i < 7; i++)
-                GameEngine._objs_ingame.Add(new Asteroid(new System.Drawing.Point(GameEngine.Width, 100), new System.Drawing.Point(4, 0), new System.Drawing.Size(0,0)));
-
-            //form.Show();
-            form.KeyDown += Form_KeyDown;
-            //GameEngine.Draw();
             Application.Run(form);
             
         }
 
-        private static void Form_KeyDown(object sender, KeyEventArgs e)
+        public static void ChangeGameStatus(GameStatus status)
         {
-            if (e.KeyCode == Keys.ControlKey)
+            gameStatus = status;
+            if (status == GameStatus.menu)
             {
-                bullet = new Bullet(new Point(heroShip.Rect.X + 60, heroShip.Rect.Y + 35), new Point(15, 0), new Size(8, 3));
-                GameEngine._objs_bullets.Add(bullet);
+                start_btn.Visible = true;
+                record_btn.Visible = true;
+                exit_btn.Visible = true;
+                author.Visible = true;
+                menu_btn.Visible = false;
             }
-            if (e.KeyCode == Keys.Up) heroShip.Up();
-            if (e.KeyCode == Keys.Down) heroShip.Down();
+            else
+            {
+                menu_btn.Visible = true;
+                start_btn.Visible = false;
+                record_btn.Visible = false;
+                exit_btn.Visible = false;
+                author.Visible = false;
+            }
+        }
+
+        public static void ChangeGameStatus()
+        {
+            if (gameStatus == GameStatus.menu)
+            {
+                ChangeGameStatus(GameStatus.game);
+            }
+            else
+                ChangeGameStatus(GameStatus.menu);
         }
 
         /// <summary>
@@ -137,15 +144,9 @@ namespace Game
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private static void menu_btn_Click(object sender, EventArgs e)
+        private static void Menu_btn_Click(object sender, EventArgs e)
         {
-            start_btn.Visible = true;
-            record_btn.Visible = true;
-            exit_btn.Visible = true;
-            author.Visible = true;
-            menu_btn.Visible = false;
-            gameStatus = GameStatus.menu;
-            
+            ChangeGameStatus(GameStatus.menu);
         }
 
         /// <summary>
@@ -153,14 +154,9 @@ namespace Game
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private static void start_btn_Click(object sender, EventArgs e)
+        private static void Start_btn_Click(object sender, EventArgs e)
         {
-            menu_btn.Visible = true;
-            start_btn.Visible = false;
-            record_btn.Visible = false;
-            exit_btn.Visible = false;
-            author.Visible = false;
-            gameStatus = GameStatus.game;
+            ChangeGameStatus(GameStatus.game);
             form.Focus();
         }
 
@@ -169,7 +165,7 @@ namespace Game
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private static void record_btn_Click(object sender, EventArgs e)
+        private static void Record_btn_Click(object sender, EventArgs e)
         {
             MessageBox.Show("Тут будут рекорды.");
             //throw new NotImplementedException();
@@ -180,7 +176,7 @@ namespace Game
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private static void exit_btn_Click(object sender, EventArgs e)
+        private static void Exit_btn_Click(object sender, EventArgs e)
         {
             if (MessageBox.Show("Точно хотите выйти?", "Выход", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
